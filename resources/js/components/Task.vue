@@ -22,12 +22,19 @@ export default {
         }
     },
     methods: {
-        
+        populateInfo() {
+            this.name = this.task.name;
+            this.dueIn = this.task.dueIn;
+            this.priority = this.task.priority;
+        }
     },
     created() {
-        this.name = this.task.name;
-        this.dueIn = this.task.dueIn;
-        this.priority = this.task.priority;
+        this.populateInfo()
+    },
+    watch: {
+        task(newTask, oldTask) {
+            this.populateInfo();
+        }
     }
 }
 </script>

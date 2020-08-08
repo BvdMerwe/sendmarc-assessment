@@ -1908,7 +1908,12 @@ module.exports = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _components_Task_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/Task.vue */ "./resources/js/components/Task.vue");
+/* harmony import */ var _mixins_helpers_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mixins/helpers.js */ "./resources/js/mixins/helpers.js");
+/* harmony import */ var _components_Task_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/Task.vue */ "./resources/js/components/Task.vue");
+//
+//
+//
+//
 //
 //
 //
@@ -1924,33 +1929,65 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'App',
   components: {
-    Task: _components_Task_vue__WEBPACK_IMPORTED_MODULE_0__["default"]
+    Task: _components_Task_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
   },
   data: function data() {
     return {
-      tasks: []
+      tasks: [],
+      tickMessage: "TICK!"
     };
   },
   methods: {
+    setTasks: function setTasks(data) {
+      this.tasks = data;
+    },
     fetchTasks: function fetchTasks() {
       var _this = this;
 
       fetch('/tasks').then(function (res) {
         return res.json();
       }).then(function (res) {
-        _this.tasks = res;
+        _this.setTasks(res);
+
+        console.log(res);
       });
     },
-    sortByPriority: function sortByPriority() {},
-    sortByName: function sortByName() {},
-    sortByDue: function sortByDue() {}
+    tickTasks: function tickTasks() {
+      var _this2 = this;
+
+      this.tickMessage = "TICKING...";
+      fetch('/list/tick').then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        _this2.fetchTasks();
+
+        _this2.tickMessage = "TICK!";
+      });
+    },
+    sortByPriority: function sortByPriority() {
+      this.tasks = this.tasks.slice().sort(function (a, b) {
+        return a.priority == b.priority ? 0 : a.priority > b.priority ? -1 : 1;
+      }); // console.log(newArray[0].priority)
+    },
+    sortByName: function sortByName() {
+      this.tasks = this.tasks.slice().sort(function (a, b) {
+        return a.name.localeCompare(b.name);
+      }); // console.log(newArray[0].name)
+    },
+    sortByDue: function sortByDue() {
+      this.tasks = this.tasks.slice().sort(function (a, b) {
+        return a.dueIn == b.dueIn ? 0 : a.dueIn < b.dueIn ? -1 : 1;
+      }); // console.log(newArray[0].dueIn)
+    }
   },
   created: function created() {
     this.fetchTasks();
-  }
+  },
+  mixins: [_mixins_helpers_js__WEBPACK_IMPORTED_MODULE_0__["default"]]
 });
 
 /***/ }),
@@ -1986,11 +2023,20 @@ __webpack_require__.r(__webpack_exports__);
       priority: ""
     };
   },
-  methods: {},
+  methods: {
+    populateInfo: function populateInfo() {
+      this.name = this.task.name;
+      this.dueIn = this.task.dueIn;
+      this.priority = this.task.priority;
+    }
+  },
   created: function created() {
-    this.name = this.task.name;
-    this.dueIn = this.task.dueIn;
-    this.priority = this.task.priority;
+    this.populateInfo();
+  },
+  watch: {
+    task: function task(newTask, oldTask) {
+      this.populateInfo();
+    }
   }
 });
 
@@ -2008,7 +2054,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\n  background-color: #15263a;\n  color: #fafdff;\n}\nh1, h2, h3, h4, h5 {\n  color: #cbe3f1;\n}\n.center-text {\n  text-align: center;\n}\n.align-center {\n  align-self: center;\n}\n.justify-center {\n  justify-self: center;\n}\n.justify-right {\n  justify-self: right;\n}\n#app {\n  display: grid;\n  align-items: center;\n  justify-content: center;\n}\n.task-list {\n  display: grid;\n  align-items: center;\n  justify-content: center;\n  row-gap: 10px;\n}\n.list-heading {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  padding: 0px 10px;\n  font-size: 0.625em;\n  font-weight: bold;\n  text-transform: uppercase;\n}\n.list-heading div {\n  cursor: pointer;\n}", ""]);
+exports.push([module.i, "html, body {\n  background-color: #15263a;\n  color: #fafdff;\n}\nh1, h2, h3, h4, h5 {\n  color: #cbe3f1;\n}\n.center-text {\n  text-align: center;\n}\n.align-center {\n  align-self: center;\n}\n.justify-center {\n  justify-self: center;\n}\n.justify-right {\n  justify-self: right;\n}\n#app {\n  display: grid;\n  align-items: center;\n  justify-content: center;\n}\n.task-list {\n  display: grid;\n  align-items: center;\n  justify-content: center;\n  row-gap: 10px;\n}\n.list-heading {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  padding: 0px 10px;\n  font-size: 0.625em;\n  font-weight: bold;\n  text-transform: uppercase;\n}\n.list-heading div {\n  cursor: pointer;\n}\n.tick-button {\n  background: #fff;\n  border: none;\n  border-radius: 100px;\n  height: 4em;\n  display: inline-block;\n  width: auto;\n  outline: none;\n}", ""]);
 
 // exports
 
@@ -20116,25 +20162,48 @@ var render = function() {
       "div",
       { staticClass: "task-list" },
       [
-        _c("div", { staticClass: "list-heading" }, [
-          _c("div", { on: { click: _vm.sortByName } }, [_vm._v("task name")]),
-          _vm._v(" "),
-          _c(
-            "div",
-            { staticClass: "justify-center", on: { click: _vm.sortByDue } },
-            [_vm._v("due in")]
-          ),
-          _vm._v(" "),
-          _c(
-            "div",
-            { staticClass: "justify-right", on: { click: _vm.sortByPriority } },
-            [_vm._v("priority")]
-          )
-        ]),
+        _vm.tasks.length == 0
+          ? _c("div", { staticClass: "list-warning" }, [
+              _vm._v("\n            No tasks to display\n        ")
+            ])
+          : _vm._e(),
+        _vm._v(" "),
+        _vm.tasks.length > 0
+          ? _c("div", { staticClass: "list-heading" }, [
+              _c(
+                "div",
+                { staticClass: "justify-left", on: { click: _vm.sortByName } },
+                [_vm._v("task name")]
+              ),
+              _vm._v(" "),
+              _c(
+                "div",
+                { staticClass: "justify-center", on: { click: _vm.sortByDue } },
+                [_vm._v("due in")]
+              ),
+              _vm._v(" "),
+              _c(
+                "div",
+                {
+                  staticClass: "justify-right",
+                  on: { click: _vm.sortByPriority }
+                },
+                [_vm._v("priority")]
+              )
+            ])
+          : _vm._e(),
         _vm._v(" "),
         _vm._l(_vm.tasks, function(task) {
           return _c("Task", { key: task.id, attrs: { task: task } })
-        })
+        }),
+        _vm._v(" "),
+        _vm.tasks.length > 0
+          ? _c(
+              "button",
+              { staticClass: "tick-button", on: { click: _vm.tickTasks } },
+              [_vm._v(_vm._s(_vm.tickMessage))]
+            )
+          : _vm._e()
       ],
       2
     )
@@ -32578,6 +32647,49 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Task_vue_vue_type_template_id_e9a53c20___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
+
+/***/ }),
+
+/***/ "./resources/js/mixins/helpers.js":
+/*!****************************************!*\
+  !*** ./resources/js/mixins/helpers.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  name: "helpers",
+  methods: {
+    makeRequest: function makeRequest(method, url) {
+      return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+
+        xhr.onload = function () {
+          if (this.status >= 200 && this.status < 300) {
+            resolve(xhr.response);
+          } else {
+            reject({
+              status: this.status,
+              statusText: xhr.statusText
+            });
+          }
+        };
+
+        xhr.onerror = function () {
+          reject({
+            status: this.status,
+            statusText: xhr.statusText
+          });
+        };
+
+        xhr.send();
+      });
+    }
+  }
+});
 
 /***/ }),
 
